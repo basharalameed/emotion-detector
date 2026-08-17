@@ -9,6 +9,7 @@ Usage:
     python scripts/run_live_hf.py
 """
 # pylint: disable=wrong-import-position,unused-argument,import-error
+# pylint: disable=duplicate-code
 import os
 import sys
 from unittest.mock import Mock, patch
@@ -25,12 +26,14 @@ HF_URL = (
 EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
 ALL_LABELS = EMOTIONS + ["surprise", "neutral"]
 
+_real_post = requests.post
+
 
 def analyze_real(text):
     """Call the real Hugging Face model and return score dict."""
     token = os.environ.get("HF_TOKEN", "")
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.post(
+    response = _real_post(
         HF_URL, json={"inputs": text}, headers=headers, timeout=45
     )
     response.raise_for_status()
