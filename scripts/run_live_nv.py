@@ -100,7 +100,7 @@ def _warm_up():
     """Load the model in the background so the first query is fast."""
     try:
         analyze_real("Hello")
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         pass
 
 
@@ -110,7 +110,7 @@ def _keep_warm():
         time.sleep(240)
         try:
             analyze_real("Hello")
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001  # pylint: disable=broad-exception-caught
             pass
 
 
