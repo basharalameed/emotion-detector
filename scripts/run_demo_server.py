@@ -1,8 +1,9 @@
-"""Local demo server with a mocked Watson response (no internet needed).
+"""Local demo server with a smart mocked Watson response (no internet needed).
 
 Runs the real Flask application but replaces the Watson POST with a
-deterministic mock so the web interface works fully offline. The
-production code in EmotionDetection/ is untouched.
+keyword-based mock that detects the emotion from the statement (Arabic and
+English) and returns realistic scores. The production code in
+EmotionDetection/ is untouched.
 
 Usage:
     python scripts/run_demo_server.py
@@ -17,40 +18,58 @@ sys.path.insert(0, PROJECT_ROOT)
 
 import EmotionDetection.emotion_detection as module  # noqa: E402
 
-SAMPLES = {
-    "I am so glad this happened": {
-        "anger": 0.012, "disgust": 0.008, "fear": 0.012,
-        "joy": 0.902, "sadness": 0.066,
-    },
-    "I am really mad about this": {
-        "anger": 0.871, "disgust": 0.099, "fear": 0.008,
-        "joy": 0.004, "sadness": 0.018,
-    },
-    "I feel disgusted just hearing about this": {
-        "anger": 0.041, "disgust": 0.798, "fear": 0.011,
-        "joy": 0.006, "sadness": 0.144,
-    },
-    "I am so sad about this": {
-        "anger": 0.022, "disgust": 0.016, "fear": 0.019,
-        "joy": 0.003, "sadness": 0.94,
-    },
-    "I am really afraid that this will happen": {
-        "anger": 0.031, "disgust": 0.055, "fear": 0.811,
-        "joy": 0.022, "sadness": 0.081,
-    },
+EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
+
+KEYWORDS = {
+    "joy": [
+        "glad", "happy", "joy", "great", "love", "wonderful", "awesome",
+        "سعيد", "سعيدة", "فرح", "رائع", "مبسوط", "احب", "أحب",
+    ],
+    "anger": [
+        "mad", "angry", "anger", "hate", "rage", "furious", "annoyed",
+        "غاضب", "غاضبة", "غضب", "اكره", "أكره", "مستاء", "مستاءة",
+    ],
+    "sadness": [
+        "sad", "sorrow", "cry", "crying", "unhappy", "miserable", "upset",
+        "حزين", "حزينة", "حزن", "باكي", "تعيس", "متضايق",
+    ],
+    "fear": [
+        "afraid", "fear", "scared", "terrified", "frightened", "anxious",
+        "خائف", "خايف", "خوف", "مذعور", "مرعوب", "قلق",
+    ],
+    "disgust": [
+        "disgust", "disgusted", "repulsive", "revolting", "gross",
+        "اشمئزاز", "مقرف", "مقزز", "كريه", "مقرف جدا",
+    ],
+}
+
+TAIL = {
+    "anger": 0.012,
+    "disgust": 0.034,
+    "fear": 0.021,
+    "joy": 0.043,
+    "sadness": 0.031,
 }
 
 
+def detect_emotion(text):
+    """Return the detected emotion keyword for the statement, or None."""
+    lowered = text.lower()
+    for emotion, words in KEYWORDS.items():
+        if any(word in lowered for word in words):
+            return emotion
+    return None
+
+
 def fake_post(url, json=None, headers=None, timeout=None):
-    """Return a fake response using the sample emotions for the text."""
+    """Return a fake Watson response with keyword-detected emotion scores."""
     text = json["raw_document"]["text"].strip()
-    emotions = SAMPLES.get(
-        text,
-        {"anger": 0.2, "disgust": 0.2, "fear": 0.2, "joy": 0.2, "sadness": 0.2},
-    )
+    dominant = detect_emotion(text) or "joy"
+    scores = {emotion: TAIL[emotion] for emotion in EMOTIONS}
+    scores[dominant] = 0.89
     response = Mock(status_code=200)
     response.json.return_value = {
-        "emotionPredictions": [{"emotion": emotions}]
+        "emotionPredictions": [{"emotion": scores}]
     }
     return response
 
