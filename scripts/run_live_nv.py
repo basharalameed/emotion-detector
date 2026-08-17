@@ -14,6 +14,8 @@ import json
 import os
 import re
 import sys
+import threading
+import time
 from unittest.mock import Mock, patch
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -62,30 +64,54 @@ def _extract_json(text):
 
 def analyze_real(text):
     """Call the real NVIDIA model and return the emotion score dict."""
-    response = _real_post(
-        NVIDIA_URL,
-        json={
-            "model": MODEL,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": text},
-            ],
-            "temperature": 0.1,
-            "max_tokens": 300,
-        },
-        headers={
-            "Authorization": f"Bearer {_api_key()}",
-            "Content-Type": "application/json",
-        },
-        timeout=60,
-    )
-    response.raise_for_status()
+    attempts = 6
+    for attempt in range(attempts):
+        response = _real_post(
+            NVIDIA_URL,
+            json={
+                "model": MODEL,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": text},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 300,
+            },
+            headers={
+                "Authorization": f"Bearer {_api_key()}",
+                "Content-Type": "application/json",
+            },
+            timeout=120,
+        )
+        if response.status_code in (503, 429) and attempt < attempts - 1:
+            time.sleep(20)
+            continue
+        response.raise_for_status()
+        break
     payload = response.json()["choices"][0]["message"]["content"]
     data = _extract_json(payload)
     return {
         emotion: round(float(data.get(emotion, 0.0)), 3)
         for emotion in EMOTIONS
     }
+
+
+def _warm_up():
+    """Load the model in the background so the first query is fast."""
+    try:
+        analyze_real("Hello")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _keep_warm():
+    """Keep the model loaded while the server runs (every 4 minutes)."""
+    while True:
+        time.sleep(240)
+        try:
+            analyze_real("Hello")
+        except Exception:  # noqa: BLE001
+            pass
 
 
 def fake_post(url, json=None, headers=None, timeout=None):  # pylint: disable=redefined-outer-name
@@ -109,6 +135,8 @@ from EmotionDetection.server import app  # noqa: E402
 
 if __name__ == "__main__":
     print("Live mode: real scores from NVIDIA NIM API (Llama 3.3 70B).")
+    threading.Thread(target=_warm_up, daemon=True).start()
+    threading.Thread(target=_keep_warm, daemon=True).start()
     app.run(
         host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False
     )
