@@ -7,6 +7,20 @@ emotion scores together with the dominant emotion.
 
 import requests
 
+from requests.exceptions import RequestException
+
+
+def _empty_response():
+    """Build a response with None values (invalid input or HTTP 400)."""
+    return {
+        "anger": None,
+        "disgust": None,
+        "fear": None,
+        "joy": None,
+        "sadness": None,
+        "dominant_emotion": None,
+    }
+
 
 def emotion_detector(text_to_analyse):
     """Return emotion scores and the dominant emotion for the given text.
@@ -28,17 +42,15 @@ def emotion_detector(text_to_analyse):
     }
     input_json = {"raw_document": {"text": text_to_analyse}}
 
-    response = requests.post(url, json=input_json, headers=headers, timeout=10)
+    try:
+        response = requests.post(
+            url, json=input_json, headers=headers, timeout=10
+        )
+    except RequestException:
+        return _empty_response()
 
     if response.status_code == 400:
-        return {
-            "anger": None,
-            "disgust": None,
-            "fear": None,
-            "joy": None,
-            "sadness": None,
-            "dominant_emotion": None,
-        }
+        return _empty_response()
 
     emotions = response.json()["emotionPredictions"][0]["emotion"]
     scores = {
