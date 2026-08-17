@@ -8,7 +8,7 @@ Usage:
     set HF_TOKEN=your_token
     python scripts/run_live_hf.py
 """
-# pylint: disable=wrong-import-position,unused-argument
+# pylint: disable=wrong-import-position,unused-argument,import-error
 import os
 import sys
 from unittest.mock import Mock, patch
@@ -59,4 +59,6 @@ from EmotionDetection.server import app  # noqa: E402
 
 if __name__ == "__main__":
     print("Live mode: real scores from Hugging Face Inference API.")
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    app.run(
+        host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False
+    )
