@@ -39,9 +39,16 @@ def emotion_detector_route():
 
 def run_static_code_analysis():
     """Run pylint on this file and print the analysis score."""
-    analysis = subprocess.run(
-        ["pylint", "server.py"], capture_output=True, text=True, check=False
-    )
+    try:
+        analysis = subprocess.run(
+            ["pylint", "server.py"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return
     print(analysis.stdout)
 
 
