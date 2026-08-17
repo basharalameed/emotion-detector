@@ -1,72 +1,52 @@
-"""Emotion detection module using IBM Watson Natural Language Understanding.
+"""Emotion detection module using the IBM Watson NLP EmotionPredict API.
 
-This module exposes the emotion_detector function, which analyzes a
-statement and returns the detected emotion scores together with the
-dominant emotion.
+This module exposes the emotion_detector function, which sends a statement
+to the Watson NLP emotion prediction service and returns the detected
+emotion scores together with the dominant emotion.
 """
 
-import os
-
-from ibm_cloud_sdk_core import ApiException
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-from ibm_watson import NaturalLanguageUnderstandingV1
-from ibm_watson.natural_language_understanding_v1 import (
-    EmotionOptions,
-    Features,
-)
-
-EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
+import requests
 
 
-def emotion_detector(text_to_analyze):
+def emotion_detector(text_to_analyse):
     """Return emotion scores and the dominant emotion for the given text.
 
     Args:
-        text_to_analyze (str): The statement to analyze.
+        text_to_analyse (str): The statement to analyze.
 
     Returns:
         dict: Emotion scores for anger, disgust, fear, joy and sadness,
             plus a 'dominant_emotion' key. All values are None when the
-            input is invalid or the service answers with status 400.
+            service answers with status code 400.
     """
-    if not text_to_analyze or not text_to_analyze.strip():
-        return _empty_response()
-    try:
-        result = _analyze(text_to_analyze)
-    except ApiException as exc:
-        if exc.code == 400:
-            return _empty_response()
-        raise
-    return _format_response(result)
-
-
-def _empty_response():
-    """Build a response with None values (invalid input or HTTP 400)."""
-    response = {emotion: None for emotion in EMOTIONS}
-    response["dominant_emotion"] = None
-    return response
-
-
-def _format_response(result):
-    """Extract the emotion scores and add the dominant emotion."""
-    emotions = result.get("emotion", {}).get("emotions", {})
-    response = {emotion: emotions.get(emotion, 0.0) for emotion in EMOTIONS}
-    response["dominant_emotion"] = (
-        max(emotions, key=emotions.get) if emotions else None
+    url = (
+        "https://sn-watson-emotion.labs.skills.network/v1/"
+        "watson.runtime.nlp.v1/NlpService/EmotionPredict"
     )
-    return response
+    headers = {
+        "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"
+    }
+    input_json = {"raw_document": {"text": text_to_analyse}}
 
+    response = requests.post(url, json=input_json, headers=headers, timeout=10)
 
-def _analyze(text_to_analyze):
-    """Call the IBM Watson NLU service and return the raw API result."""
-    api_key = os.environ["WATSON_API_KEY"]
-    service_url = os.environ["WATSON_URL"]
-    authenticator = IAMAuthenticator(api_key)
-    nlu = NaturalLanguageUnderstandingV1(
-        version="2022-04-07", authenticator=authenticator
-    )
-    nlu.set_service_url(service_url)
-    return nlu.analyze(
-        text=text_to_analyze,
-        features=Features(emotion=EmotionOptions()),
-    ).get_result()
+    if response.status_code == 400:
+        return {
+            "anger": None,
+            "disgust": None,
+            "fear": None,
+            "joy": None,
+            "sadness": None,
+            "dominant_emotion": None,
+        }
+
+    emotions = response.json()["emotionPredictions"][0]["emotion"]
+    scores = {
+        "anger": emotions["anger"],
+        "disgust": emotions["disgust"],
+        "fear": emotions["fear"],
+        "joy": emotions["joy"],
+        "sadness": emotions["sadness"],
+    }
+    scores["dominant_emotion"] = max(scores, key=scores.get)
+    return scores

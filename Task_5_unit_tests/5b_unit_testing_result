@@ -8,8 +8,10 @@ test_emotion_detector_joy (test_emotion_detection.TestEmotionDetector.test_emoti
 The dominant emotion should be joy for a happy statement. ... ok
 test_emotion_detector_sadness (test_emotion_detection.TestEmotionDetector.test_emotion_detector_sadness)
 The dominant emotion should be sadness for a sad statement. ... ok
+test_emotion_detector_status_400 (test_emotion_detection.TestEmotionDetector.test_emotion_detector_status_400)
+All scores should be None when the service returns status 400. ... ok
 
 ----------------------------------------------------------------------
-Ran 5 tests in 0.001s
+Ran 6 tests in 0.002s
 
 OK

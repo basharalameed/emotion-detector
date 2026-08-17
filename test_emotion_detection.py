@@ -1,20 +1,35 @@
 """Unit tests for the Emotion Detection application."""
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from EmotionDetection.emotion_detection import emotion_detector
+
+
+def mock_response(status_code=200, emotions=None):
+    """Build a fake requests.Response object."""
+    emotions = emotions or {
+        "anger": 0.5,
+        "disgust": 0.1,
+        "fear": 0.1,
+        "joy": 0.2,
+        "sadness": 0.1,
+    }
+    response = Mock(status_code=status_code)
+    response.json.return_value = {
+        "emotionPredictions": [{"emotion": emotions}]
+    }
+    return response
 
 
 class TestEmotionDetector(unittest.TestCase):
     """Test suite for the emotion_detector function."""
 
     def assert_dominant_emotion(self, statement, emotions, expected):
-        """Assert the dominant emotion for a mock Watson response."""
-        raw_result = {"emotion": {"emotions": emotions}}
+        """Assert the dominant emotion for a mocked service response."""
         with patch(
-            "EmotionDetection.emotion_detection._analyze",
-            return_value=raw_result,
+            "EmotionDetection.emotion_detection.requests.post",
+            return_value=mock_response(emotions=emotions),
         ):
             result = emotion_detector(statement)
         self.assertEqual(result["dominant_emotion"], expected)
@@ -88,6 +103,20 @@ class TestEmotionDetector(unittest.TestCase):
             },
             "fear",
         )
+
+    def test_emotion_detector_status_400(self):
+        """All scores should be None when the service returns status 400."""
+        with patch(
+            "EmotionDetection.emotion_detection.requests.post",
+            return_value=mock_response(status_code=400),
+        ):
+            result = emotion_detector("I am really mad about this")
+        self.assertIsNone(result["dominant_emotion"])
+        self.assertIsNone(result["anger"])
+        self.assertIsNone(result["disgust"])
+        self.assertIsNone(result["fear"])
+        self.assertIsNone(result["joy"])
+        self.assertIsNone(result["sadness"])
 
 
 if __name__ == "__main__":

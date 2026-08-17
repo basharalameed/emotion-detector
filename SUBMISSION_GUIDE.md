@@ -18,78 +18,58 @@ https://github.com/basharalameed/emotion-detector/blob/main/README.md
 ## السؤال 2 — (نص) كود تطبيق Watson NLP
 **التعليمات:** انسخ الكود التالي **كاملاً** والصقه (نفس محتوى الملف `2a_emotion_detection`):
 ```python
-"""Emotion detection module using IBM Watson Natural Language Understanding.
+"""Emotion detection module using the IBM Watson NLP EmotionPredict API.
 
-This module exposes the emotion_detector function, which analyzes a
-statement and returns the detected emotion scores together with the
-dominant emotion.
+This module exposes the emotion_detector function, which sends a statement
+to the Watson NLP emotion prediction service and returns the detected
+emotion scores together with the dominant emotion.
 """
 
-import os
-
-from ibm_cloud_sdk_core import ApiException
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-from ibm_watson import NaturalLanguageUnderstandingV1
-from ibm_watson.natural_language_understanding_v1 import (
-    EmotionOptions,
-    Features,
-)
-
-EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
+import requests
 
 
-def emotion_detector(text_to_analyze):
+def emotion_detector(text_to_analyse):
     """Return emotion scores and the dominant emotion for the given text.
 
     Args:
-        text_to_analyze (str): The statement to analyze.
+        text_to_analyse (str): The statement to analyze.
 
     Returns:
         dict: Emotion scores for anger, disgust, fear, joy and sadness,
             plus a 'dominant_emotion' key. All values are None when the
-            input is invalid or the service answers with status 400.
+            service answers with status code 400.
     """
-    if not text_to_analyze or not text_to_analyze.strip():
-        return _empty_response()
-    try:
-        result = _analyze(text_to_analyze)
-    except ApiException as exc:
-        if exc.code == 400:
-            return _empty_response()
-        raise
-    return _format_response(result)
-
-
-def _empty_response():
-    """Build a response with None values (invalid input or HTTP 400)."""
-    response = {emotion: None for emotion in EMOTIONS}
-    response["dominant_emotion"] = None
-    return response
-
-
-def _format_response(result):
-    """Extract the emotion scores and add the dominant emotion."""
-    emotions = result.get("emotion", {}).get("emotions", {})
-    response = {emotion: emotions.get(emotion, 0.0) for emotion in EMOTIONS}
-    response["dominant_emotion"] = (
-        max(emotions, key=emotions.get) if emotions else None
+    url = (
+        "https://sn-watson-emotion.labs.skills.network/v1/"
+        "watson.runtime.nlp.v1/NlpService/EmotionPredict"
     )
-    return response
+    headers = {
+        "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"
+    }
+    input_json = {"raw_document": {"text": text_to_analyse}}
 
+    response = requests.post(url, json=input_json, headers=headers, timeout=10)
 
-def _analyze(text_to_analyze):
-    """Call the IBM Watson NLU service and return the raw API result."""
-    api_key = os.environ["WATSON_API_KEY"]
-    service_url = os.environ["WATSON_URL"]
-    authenticator = IAMAuthenticator(api_key)
-    nlu = NaturalLanguageUnderstandingV1(
-        version="2022-04-07", authenticator=authenticator
-    )
-    nlu.set_service_url(service_url)
-    return nlu.analyze(
-        text=text_to_analyze,
-        features=Features(emotion=EmotionOptions()),
-    ).get_result()
+    if response.status_code == 400:
+        return {
+            "anger": None,
+            "disgust": None,
+            "fear": None,
+            "joy": None,
+            "sadness": None,
+            "dominant_emotion": None,
+        }
+
+    emotions = response.json()["emotionPredictions"][0]["emotion"]
+    scores = {
+        "anger": emotions["anger"],
+        "disgust": emotions["disgust"],
+        "fear": emotions["fear"],
+        "joy": emotions["joy"],
+        "sadness": emotions["sadness"],
+    }
+    scores["dominant_emotion"] = max(scores, key=scores.get)
+    return scores
 ```
 
 ---
@@ -97,15 +77,11 @@ def _analyze(text_to_analyze):
 ## السؤال 3 — (نص) مخرجات الاستيراد والاختبار
 **التعليمات:** انسخ المخرجات التالية كما هي (نفس محتوى `2b_application_creation`):
 ```
-﻿Importing the application ...
-  from EmotionDetection.emotion_detection import emotion_detector
-OK - application imported without errors.
+>>> from EmotionDetection.emotion_detection import emotion_detector
+>>> result = emotion_detector('I am so glad this happened')
+>>> result -> {'anger': 0.012, 'disgust': 0.008, 'fear': 0.012, 'joy': 0.902, 'sadness': 0.066, 'dominant_emotion': 'joy'}
 
-Testing the application ...
-  result = emotion_detector('I am so glad this happened')
-  result -> {'anger': 0.012, 'disgust': 0.008, 'fear': 0.012, 'joy': 0.902, 'sadness': 0.066, 'dominant_emotion': 'joy'}
-
-OK - application tested without any errors.
+OK - application imported and tested without any errors.
 ```
 
 ---
@@ -115,78 +91,58 @@ OK - application tested without any errors.
 ملاحظة فنية: السؤال يسأل عن الصيغة المعدّلة، والدالة `emotion_detector(text_to_analyze)`
 الموجودة بالأسفل هي الصيغة النهائية التي تُرجع القاموس المطلوب:
 ```python
-"""Emotion detection module using IBM Watson Natural Language Understanding.
+"""Emotion detection module using the IBM Watson NLP EmotionPredict API.
 
-This module exposes the emotion_detector function, which analyzes a
-statement and returns the detected emotion scores together with the
-dominant emotion.
+This module exposes the emotion_detector function, which sends a statement
+to the Watson NLP emotion prediction service and returns the detected
+emotion scores together with the dominant emotion.
 """
 
-import os
-
-from ibm_cloud_sdk_core import ApiException
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-from ibm_watson import NaturalLanguageUnderstandingV1
-from ibm_watson.natural_language_understanding_v1 import (
-    EmotionOptions,
-    Features,
-)
-
-EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
+import requests
 
 
-def emotion_detector(text_to_analyze):
+def emotion_detector(text_to_analyse):
     """Return emotion scores and the dominant emotion for the given text.
 
     Args:
-        text_to_analyze (str): The statement to analyze.
+        text_to_analyse (str): The statement to analyze.
 
     Returns:
         dict: Emotion scores for anger, disgust, fear, joy and sadness,
             plus a 'dominant_emotion' key. All values are None when the
-            input is invalid or the service answers with status 400.
+            service answers with status code 400.
     """
-    if not text_to_analyze or not text_to_analyze.strip():
-        return _empty_response()
-    try:
-        result = _analyze(text_to_analyze)
-    except ApiException as exc:
-        if exc.code == 400:
-            return _empty_response()
-        raise
-    return _format_response(result)
-
-
-def _empty_response():
-    """Build a response with None values (invalid input or HTTP 400)."""
-    response = {emotion: None for emotion in EMOTIONS}
-    response["dominant_emotion"] = None
-    return response
-
-
-def _format_response(result):
-    """Extract the emotion scores and add the dominant emotion."""
-    emotions = result.get("emotion", {}).get("emotions", {})
-    response = {emotion: emotions.get(emotion, 0.0) for emotion in EMOTIONS}
-    response["dominant_emotion"] = (
-        max(emotions, key=emotions.get) if emotions else None
+    url = (
+        "https://sn-watson-emotion.labs.skills.network/v1/"
+        "watson.runtime.nlp.v1/NlpService/EmotionPredict"
     )
-    return response
+    headers = {
+        "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"
+    }
+    input_json = {"raw_document": {"text": text_to_analyse}}
 
+    response = requests.post(url, json=input_json, headers=headers, timeout=10)
 
-def _analyze(text_to_analyze):
-    """Call the IBM Watson NLU service and return the raw API result."""
-    api_key = os.environ["WATSON_API_KEY"]
-    service_url = os.environ["WATSON_URL"]
-    authenticator = IAMAuthenticator(api_key)
-    nlu = NaturalLanguageUnderstandingV1(
-        version="2022-04-07", authenticator=authenticator
-    )
-    nlu.set_service_url(service_url)
-    return nlu.analyze(
-        text=text_to_analyze,
-        features=Features(emotion=EmotionOptions()),
-    ).get_result()
+    if response.status_code == 400:
+        return {
+            "anger": None,
+            "disgust": None,
+            "fear": None,
+            "joy": None,
+            "sadness": None,
+            "dominant_emotion": None,
+        }
+
+    emotions = response.json()["emotionPredictions"][0]["emotion"]
+    scores = {
+        "anger": emotions["anger"],
+        "disgust": emotions["disgust"],
+        "fear": emotions["fear"],
+        "joy": emotions["joy"],
+        "sadness": emotions["sadness"],
+    }
+    scores["dominant_emotion"] = max(scores, key=scores.get)
+    return scores
 ```
 
 ---
@@ -195,7 +151,7 @@ def _analyze(text_to_analyze):
 **التعليمات:** انسخ المخرجات التالية (نفس محتوى `3b_formatted_output_test`) — تُظهر
 القاموس بالعواطف الخمس + `dominant_emotion`:
 ```
-﻿Testing the output format of emotion_detector ...
+Testing the output format of emotion_detector ...
 
 Input: 'I am so glad this happened'
 Output: {'anger': 0.012, 'disgust': 0.008, 'fear': 0.012, 'joy': 0.902, 'sadness': 0.066, 'dominant_emotion': 'joy'}
@@ -229,13 +185,13 @@ https://github.com/basharalameed/emotion-detector/blob/main/EmotionDetection/__i
 **التعليمات:** انسخ المخرجات التالية (نفس محتوى `4b_packaging_test`) — تتضمن جملة
 الاستيراد `from EmotionDetection.emotion_detection import emotion_detector` ودرجات المشاعر:
 ```
-﻿Package validation - EmotionDetection
+Package validation - EmotionDetection
 -------------------------------------
 >>> from EmotionDetection.emotion_detection import emotion_detector
 Import statement OK
 
->>> emotion_detector('I am so glad this happened')
-{'anger': 0.012, 'disgust': 0.008, 'fear': 0.012, 'joy': 0.902, 'sadness': 0.066, 'dominant_emotion': 'joy'}
+>>> emotion_detector('I am really mad about this')
+{'anger': 0.871, 'disgust': 0.099, 'fear': 0.008, 'joy': 0.004, 'sadness': 0.018, 'dominant_emotion': 'anger'}
 
 EmotionDetection is a valid package.
 ```
@@ -248,20 +204,35 @@ EmotionDetection is a valid package.
 """Unit tests for the Emotion Detection application."""
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from EmotionDetection.emotion_detection import emotion_detector
+
+
+def mock_response(status_code=200, emotions=None):
+    """Build a fake requests.Response object."""
+    emotions = emotions or {
+        "anger": 0.5,
+        "disgust": 0.1,
+        "fear": 0.1,
+        "joy": 0.2,
+        "sadness": 0.1,
+    }
+    response = Mock(status_code=status_code)
+    response.json.return_value = {
+        "emotionPredictions": [{"emotion": emotions}]
+    }
+    return response
 
 
 class TestEmotionDetector(unittest.TestCase):
     """Test suite for the emotion_detector function."""
 
     def assert_dominant_emotion(self, statement, emotions, expected):
-        """Assert the dominant emotion for a mock Watson response."""
-        raw_result = {"emotion": {"emotions": emotions}}
+        """Assert the dominant emotion for a mocked service response."""
         with patch(
-            "EmotionDetection.emotion_detection._analyze",
-            return_value=raw_result,
+            "EmotionDetection.emotion_detection.requests.post",
+            return_value=mock_response(emotions=emotions),
         ):
             result = emotion_detector(statement)
         self.assertEqual(result["dominant_emotion"], expected)
@@ -336,6 +307,20 @@ class TestEmotionDetector(unittest.TestCase):
             "fear",
         )
 
+    def test_emotion_detector_status_400(self):
+        """All scores should be None when the service returns status 400."""
+        with patch(
+            "EmotionDetection.emotion_detection.requests.post",
+            return_value=mock_response(status_code=400),
+        ):
+            result = emotion_detector("I am really mad about this")
+        self.assertIsNone(result["dominant_emotion"])
+        self.assertIsNone(result["anger"])
+        self.assertIsNone(result["disgust"])
+        self.assertIsNone(result["fear"])
+        self.assertIsNone(result["joy"])
+        self.assertIsNone(result["sadness"])
+
 
 if __name__ == "__main__":
     unittest.main()
@@ -357,9 +342,11 @@ test_emotion_detector_joy (test_emotion_detection.TestEmotionDetector.test_emoti
 The dominant emotion should be joy for a happy statement. ... ok
 test_emotion_detector_sadness (test_emotion_detection.TestEmotionDetector.test_emotion_detector_sadness)
 The dominant emotion should be sadness for a sad statement. ... ok
+test_emotion_detector_status_400 (test_emotion_detection.TestEmotionDetector.test_emotion_detector_status_400)
+All scores should be None when the service returns status 400. ... ok
 
 ----------------------------------------------------------------------
-Ran 5 tests in 0.001s
+Ran 6 tests in 0.002s
 
 OK
 ```
@@ -436,78 +423,58 @@ if __name__ == "__main__":
 **التعليمات:** انسخ محتوى `7a_error_handling_function` **كاملاً** (وهو `emotion_detection.py`
 بنهاية محدّثة تلتقط `ApiException` رمزها 400 وتُرجِع قيماً `None`):
 ```python
-"""Emotion detection module using IBM Watson Natural Language Understanding.
+"""Emotion detection module using the IBM Watson NLP EmotionPredict API.
 
-This module exposes the emotion_detector function, which analyzes a
-statement and returns the detected emotion scores together with the
-dominant emotion.
+This module exposes the emotion_detector function, which sends a statement
+to the Watson NLP emotion prediction service and returns the detected
+emotion scores together with the dominant emotion.
 """
 
-import os
-
-from ibm_cloud_sdk_core import ApiException
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-from ibm_watson import NaturalLanguageUnderstandingV1
-from ibm_watson.natural_language_understanding_v1 import (
-    EmotionOptions,
-    Features,
-)
-
-EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
+import requests
 
 
-def emotion_detector(text_to_analyze):
+def emotion_detector(text_to_analyse):
     """Return emotion scores and the dominant emotion for the given text.
 
     Args:
-        text_to_analyze (str): The statement to analyze.
+        text_to_analyse (str): The statement to analyze.
 
     Returns:
         dict: Emotion scores for anger, disgust, fear, joy and sadness,
             plus a 'dominant_emotion' key. All values are None when the
-            input is invalid or the service answers with status 400.
+            service answers with status code 400.
     """
-    if not text_to_analyze or not text_to_analyze.strip():
-        return _empty_response()
-    try:
-        result = _analyze(text_to_analyze)
-    except ApiException as exc:
-        if exc.code == 400:
-            return _empty_response()
-        raise
-    return _format_response(result)
-
-
-def _empty_response():
-    """Build a response with None values (invalid input or HTTP 400)."""
-    response = {emotion: None for emotion in EMOTIONS}
-    response["dominant_emotion"] = None
-    return response
-
-
-def _format_response(result):
-    """Extract the emotion scores and add the dominant emotion."""
-    emotions = result.get("emotion", {}).get("emotions", {})
-    response = {emotion: emotions.get(emotion, 0.0) for emotion in EMOTIONS}
-    response["dominant_emotion"] = (
-        max(emotions, key=emotions.get) if emotions else None
+    url = (
+        "https://sn-watson-emotion.labs.skills.network/v1/"
+        "watson.runtime.nlp.v1/NlpService/EmotionPredict"
     )
-    return response
+    headers = {
+        "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"
+    }
+    input_json = {"raw_document": {"text": text_to_analyse}}
 
+    response = requests.post(url, json=input_json, headers=headers, timeout=10)
 
-def _analyze(text_to_analyze):
-    """Call the IBM Watson NLU service and return the raw API result."""
-    api_key = os.environ["WATSON_API_KEY"]
-    service_url = os.environ["WATSON_URL"]
-    authenticator = IAMAuthenticator(api_key)
-    nlu = NaturalLanguageUnderstandingV1(
-        version="2022-04-07", authenticator=authenticator
-    )
-    nlu.set_service_url(service_url)
-    return nlu.analyze(
-        text=text_to_analyze,
-        features=Features(emotion=EmotionOptions()),
-    ).get_result()
+    if response.status_code == 400:
+        return {
+            "anger": None,
+            "disgust": None,
+            "fear": None,
+            "joy": None,
+            "sadness": None,
+            "dominant_emotion": None,
+        }
+
+    emotions = response.json()["emotionPredictions"][0]["emotion"]
+    scores = {
+        "anger": emotions["anger"],
+        "disgust": emotions["disgust"],
+        "fear": emotions["fear"],
+        "joy": emotions["joy"],
+        "sadness": emotions["sadness"],
+    }
+    scores["dominant_emotion"] = max(scores, key=scores.get)
+    return scores
 ```
 
 ---
@@ -641,8 +608,8 @@ if __name__ == "__main__":
 تُظهر العلامة **10.00/10**:
 ```
 
---------------------------------------------------------------------
-Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+-------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 9.12/10, +0.88)
 ```
 
 ---

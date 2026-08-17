@@ -1,66 +1,55 @@
 # Emotion Detector
 
-**Emotion Detector** — تطبيق ويب لاكتشاف العواطف في النصوص باستخدام
-**IBM Watson Natural Language Understanding (NLP)** و **Flask**.
+**Emotion Detector** is an AI-based web application that analyzes a statement
+and returns the detected emotion scores (anger, disgust, fear, joy, sadness)
+together with the dominant emotion, using the IBM Watson NLP
+EmotionPredict service and Flask.
 
-يقوم التطبيق بتحليل أي عبارة نصية ويرجع درجات المشاعر الخمس
-(**anger, disgust, fear, joy, sadness**) مع تحديد **المشاعر السائدة (dominant emotion)**.
+**كاشف المشاعر** تطبيق ويب يعتمد على الذكاء الاصطناعي يحلل النص ويعيد درجات
+العواطف الخمس (الغضب، الاشمئزاز، الخوف، الفرح، الحزن) مع العاطفة السائدة،
+باستخدام خدمة IBM Watson NLP وإطار Flask.
 
-## المتطلبات / المهام (16 نقطة — النجاح ≥ 12)
+## Project Name
+`Emotion Detector`
 
-| المهمة | النشاطات | ملف التسليم |
-|---|---|---|
-| Task 1: المستودع العام | نشاط 1 | رابط `README.md` (هذا الملف) |
-| Task 2: تطبيق Watson NLP | نشاطان | `emotion_detection.py` + `2b_application_creation` |
-| Task 3: تنسيق المخرجات | نشاطان | `3a_output_formatting` + `3b_formatted_output_test` |
-| Task 4: حزمة EmotionDetection | نشاطان | `EmotionDetection/__init__.py` + `4b_packaging_test` |
-| Task 5: اختبارات الوحدة | نشاطان | `test_emotion_detection.py` + `5b_unit_testing_result` |
-| Task 6: نشر Flask | نشاطان | `server.py` + `6b_deployment_test.png` |
-| Task 7: معالجة الأخطاء | 3 أنشطة | `7a_error_handling_function` + `7b_error_handling_server` + `7c_error_handling_interface.png` |
-| Task 8: تحليل كود ثابت | نشاطان | `8a_server_modified` + `8b_static_code_analysis` (pylint 10.00/10) |
+## Project Details
 
-## هيكل المشروع
+| Feature | Detail |
+|---|---|
+| Project name | Emotion Detector |
+| Language | Python 3 |
+| AI service | IBM Watson NLP (EmotionPredict API) |
+| Web framework | Flask |
+| Static analysis | pylint (10.00/10) |
+| Unit tests | 6 tests, all passing |
+
+## Project Structure
 
 ```
 emotion-detector/
-├── README.md
-├── requirements.txt
-├── test_emotion_detection.py
 ├── EmotionDetection/
-│   ├── __init__.py
-│   ├── emotion_detection.py
-│   ├── server.py
-│   ├── templates/index.html
-│   └── static/mywebscript.js
-├── scripts/                    (أدوات تطوير: مخرجات تجريبية + لقطات)
-└── Task_1_repository/ ... Task_8_static_analysis/   (ملفات التسليم)
+│   ├── emotion_detection.py   # Watson NLP emotion detection function
+│   ├── server.py              # Flask web server
+│   ├── __init__.py            # Package import of the application module
+│   ├── templates/index.html   # Web interface
+│   └── static/mywebscript.js  # Front-end script
+├── test_emotion_detection.py  # Unit tests
+├── Task_1_repository/         # Repository details
+├── Task_2_watson_app/         # Application code + test output
+├── Task_3_output_format/      # Output formatting code + test output
+├── Task_4_package/            # Package validation output
+├── Task_5_unit_tests/         # Unit tests code + result
+├── Task_6_flask_deployment/   # Server code + deployment screenshot
+├── Task_7_error_handling/     # Error handling code + screenshot
+├── Task_8_static_analysis/    # Static analysis code + pylint score
+└── requirements.txt
 ```
 
-## التشغيل
+## How to Run
 
 ```bash
 pip install -r requirements.txt
-
-# ضع بيانات IBM Cloud (حساب مجاني → خدمة Natural Language Understanding):
-export WATSON_API_KEY="<API_KEY>"
-export WATSON_URL="<SERVICE_URL>"
-
-# اختبارات الوحدة
-python -m unittest -v test_emotion_detection
-
-# تشغيل الخادم (مع تشغيل pylint تلقائياً على server.py)
 python EmotionDetection/server.py
-# ثم افتح: http://127.0.0.1:5000/
 ```
 
-## تنسيق المخرجات
-
-```
-emotion_detector("I am so glad this happened")
--> {'anger': 0.012, 'disgust': 0.008, 'fear': 0.012,
-    'joy': 0.902, 'sadness': 0.066, 'dominant_emotion': 'joy'}
-```
-
-- الإدخال الفارغ أو استجابة Watson **400** → كل القيم `None`
-- `server.py` يعالج الإدخال الفارغ ويرجع: `Invalid text! Please try again!`
-- تشغيل الخادم ينفذ **التحليل الساكن** عبر pylint ويعرض العلامة (10.00/10)
+Then open `http://127.0.0.1:5000/` in your browser.
