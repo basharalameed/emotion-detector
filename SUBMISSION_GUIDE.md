@@ -2,7 +2,7 @@
 
 > **قاعدة ذهبية للمتعلمين:** كل سؤال "نص" يجب أن تَنسخ فيه **محتوى الملف** (الكود أو
 > المخرجات) ثم تَلصقه في خانة الإجابة. **ممنوع منعاً باتاً لصق مسار الملف**
-> (مثل `Task_2_watson_app\2b_application_creation`) — المصحح يرفض هذا ويسجّله خللاً.
+> (مثل `Task_2_watson_app\\2b_application_creation`) — المصحح يرفض هذا ويسجّله خللاً.
 > المحتوى الجاهز كاملاً موجود في هذا الدليل وفي الملفات المسمّاة داخل كل مجلد Task.
 
 ---
@@ -10,7 +10,7 @@
 ## السؤال 1 — (URL) رابط README.md
 **التعليمات:** انسخ الرابط التالي والصقه في خانة "Enter website URL":
 ```
-https://github.com/basharalameed/land-classification-exam/blob/main/emotion-detector/README.md
+https://github.com/basharalameed/emotion-detector/blob/main/README.md
 ```
 
 ---
@@ -220,7 +220,7 @@ OK - output format is consistent for every statement.
 ## السؤال 6 — (URL) رابط __init__.py
 **التعليمات:** انسخ الرابط والصقه في خانة "Enter website URL":
 ```
-https://github.com/basharalameed/land-classification-exam/blob/main/emotion-detector/EmotionDetection/__init__.py
+https://github.com/basharalameed/emotion-detector/blob/main/EmotionDetection/__init__.py
 ```
 
 ---
@@ -427,7 +427,7 @@ if __name__ == "__main__":
 **التعليمات:** استخدم زر **Upload** وارفع الملف التالي من حاسوبك (هو صورة فعلية، لا تنسخ
 نصاً):
 ```
-%D:\امتحان\emotion-detector\Task_6_flask_deploymentb_deployment_test.png
+%D:\امتحان\emotion-detector\Task_6_flask_deployment\6b_deployment_test.png
 ```
 
 ---
@@ -573,7 +573,7 @@ if __name__ == "__main__":
 ## السؤال 14 — (ملف صورة) لقطة معالجة الأخطاء
 **التعليمات:** استخدم زر **Upload** وارفع الملف التالي من حاسوبك:
 ```
-%D:\امتحان\emotion-detector\Task_7_error_handlingc_error_handling_interface.png
+%D:\امتحان\emotion-detector\Task_7_error_handling\7c_error_handling_interface.png
 ```
 
 ---

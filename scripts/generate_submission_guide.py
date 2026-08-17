@@ -7,7 +7,7 @@ import os
 ROOT = r"D:\امتحان\emotion-detector"
 OUT = os.path.join(ROOT, "SUBMISSION_GUIDE.md")
 
-GITHUB_BASE = "https://github.com/basharalameed/land-classification-exam/blob/main/emotion-detector"
+GITHUB_BASE = "https://github.com/basharalameed/emotion-detector"
 
 
 def read(rel):
@@ -15,11 +15,11 @@ def read(rel):
         return f.read().rstrip("\n")
 
 
-Q1_URL = "https://github.com/basharalameed/land-classification-exam/blob/main/emotion-detector/README.md"
-Q6_URL = "https://github.com/basharalameed/land-classification-exam/blob/main/emotion-detector/EmotionDetection/__init__.py"
+Q1_URL = "https://github.com/basharalameed/emotion-detector/blob/main/README.md"
+Q6_URL = "https://github.com/basharalameed/emotion-detector/blob/main/EmotionDetection/__init__.py"
 
 blocks = []
-blocks.append("""# دليل إجابات الواجب — Emotion Detector (16 سؤالاً)
+blocks.append(r"""# دليل إجابات الواجب — Emotion Detector (16 سؤالاً)
 
 > **قاعدة ذهبية للمتعلمين:** كل سؤال "نص" يجب أن تَنسخ فيه **محتوى الملف** (الكود أو
 > المخرجات) ثم تَلصقه في خانة الإجابة. **ممنوع منعاً باتاً لصق مسار الملف**
