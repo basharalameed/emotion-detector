@@ -1,6 +1,11 @@
 """Flask web server for the Emotion Detector application."""
 
+# pylint: disable=wrong-import-position
+import os
 import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from flask import Flask, render_template, request
 
