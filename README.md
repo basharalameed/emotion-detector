@@ -53,3 +53,9 @@ python EmotionDetection/server.py
 ```
 
 Then open `http://127.0.0.1:5000/` in your browser.
+
+---
+
+## ًں¤‌ Contributing & Pull Request Guidelines
+
+Contributions, bug reports, and documentation improvements are welcome! Please open an issue or submit a Pull Request against the `main` branch.
